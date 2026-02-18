@@ -5,6 +5,7 @@ import type {
   TPointerEvent,
 } from 'fabric';
 import type { BoundaryConstraintConfig, ZoneRect } from './typedefs';
+import { ensureDataSerialization } from '../zone_util/ensureDataSerialization';
 
 type TransformEvent = BasicTransformEvent<TPointerEvent> & {
   target: FabricObject;
@@ -16,6 +17,7 @@ export class BoundaryConstraint {
   constrainScaling: boolean;
 
   constructor(canvas: Canvas, options: Partial<BoundaryConstraintConfig> = {}) {
+    ensureDataSerialization();
     this.canvas = canvas;
     this.zones = options.zones ?? {};
     this.constrainScaling = options.constrainScaling ?? true;
