@@ -15,10 +15,7 @@ export class BoundaryConstraint {
   zones: Record<string, ZoneRect>;
   constrainScaling: boolean;
 
-  constructor(
-    canvas: Canvas,
-    options: Partial<BoundaryConstraintConfig> = {},
-  ) {
+  constructor(canvas: Canvas, options: Partial<BoundaryConstraintConfig> = {}) {
     this.canvas = canvas;
     this.zones = options.zones ?? {};
     this.constrainScaling = options.constrainScaling ?? true;
@@ -79,19 +76,20 @@ export class BoundaryConstraint {
     target.setCoords();
     const bound = target.getBoundingRect();
 
-    // If bounding rect exceeds zone, clamp scale down
+    // Find the most restrictive ratio to fit within zone
+    let ratio = 1;
     if (bound.width > zone.width) {
-      const ratio = zone.width / bound.width;
-      target.scaleX = (target.scaleX ?? 1) * ratio;
-      target.scaleY = (target.scaleY ?? 1) * ratio;
+      ratio = Math.min(ratio, zone.width / bound.width);
     }
     if (bound.height > zone.height) {
-      const ratio = zone.height / bound.height;
-      target.scaleX = (target.scaleX ?? 1) * ratio;
-      target.scaleY = (target.scaleY ?? 1) * ratio;
+      ratio = Math.min(ratio, zone.height / bound.height);
     }
 
-    target.setCoords();
+    if (ratio < 1) {
+      target.scaleX = (target.scaleX ?? 1) * ratio;
+      target.scaleY = (target.scaleY ?? 1) * ratio;
+      target.setCoords();
+    }
 
     // After clamping scale, fix position
     this.onMoving(e);
@@ -103,6 +101,8 @@ export class BoundaryConstraint {
 
   dispose() {
     this.canvas.off('object:moving', this.onMoving);
-    this.canvas.off('object:scaling', this.onScaling);
+    if (this.constrainScaling) {
+      this.canvas.off('object:scaling', this.onScaling);
+    }
   }
 }

@@ -29,5 +29,5 @@ export type LayeredExportConfig = {
   width: number;
   height: number;
   /** DPI multiplier (default: 1) */
-  multiplier: number;
+  multiplier?: number;
 };

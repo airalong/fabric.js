@@ -88,5 +88,7 @@ export class ZoneClip {
     for (const obj of this.canvas.getObjects()) {
       this.removeClip(obj);
     }
+
+    this.canvas.requestRenderAll();
   }
 }
