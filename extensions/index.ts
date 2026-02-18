@@ -26,6 +26,8 @@ export {
 } from './cropping_controls/croppingHandlers';
 export { enterCropMode } from './cropping_controls/enterCropMode';
 
+export { ensureDataSerialization } from './zone_util/ensureDataSerialization';
+
 export { BoundaryConstraint } from './boundary_constraint';
 export type * from './boundary_constraint/typedefs';
 

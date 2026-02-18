@@ -1,6 +1,7 @@
 import { Rect } from 'fabric';
 import type { Canvas, FabricObject } from 'fabric';
 import type { ClipZoneRect, ZoneClipConfig } from './typedefs';
+import { ensureDataSerialization } from '../zone_util/ensureDataSerialization';
 
 const ZONE_CLIP_KEY = '__zoneClipPath';
 
@@ -11,6 +12,7 @@ export class ZoneClip {
   private onObjectAdded: (e: { target: FabricObject }) => void;
 
   constructor(canvas: Canvas, options: Partial<ZoneClipConfig> = {}) {
+    ensureDataSerialization();
     this.canvas = canvas;
     this.zones = options.zones ?? {};
 
