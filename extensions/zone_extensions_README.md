@@ -161,6 +161,65 @@ exporter.dispose();
 
 ---
 
+## Serialization (toJSON / loadFromJSON)
+
+The `data` property (e.g., `{ zone: 'map-text', type: 'title' }`) is **not** a built-in fabric.js property and won't serialize by default. The extensions handle this automatically.
+
+### What happens automatically
+
+Both `BoundaryConstraint` and `ZoneClip` call `ensureDataSerialization()` in their constructors. This adds `'data'` to `FabricObject.customProperties`, which means:
+
+- `canvas.toJSON()` includes `data` on every object that has it
+- `canvas.loadFromJSON(json)` restores `data` on each object
+- `object.toObject()` includes `data`
+- `Rect.fromObject(serialized)` restores `data`
+
+You can also call it manually if needed:
+
+```ts
+import { ensureDataSerialization } from 'fabric/extensions';
+
+ensureDataSerialization(); // safe to call multiple times
+```
+
+### Save/restore round-trip
+
+```ts
+// Save
+const json = canvas.toJSON();
+// json.objects[0].data === { zone: 'map-text', type: 'map-title' }
+
+// Restore
+await canvas.loadFromJSON(json);
+// objects are restored with data.zone intact
+
+// Re-create extensions (zone config is app-level, not serialized)
+const constraint = new BoundaryConstraint(canvas, {
+  zones: { 'map-text': { left: 0, top: 525, width: 500, height: 175 } },
+});
+const clip = new ZoneClip(canvas, {
+  zones: {
+    'map-text': { left: 0, top: 525, width: 500, height: 175, clip: true },
+  },
+});
+// constraints and clips are now active on the restored objects
+```
+
+### What serializes vs. what doesn't
+
+| Data                                        | Serialized? | Where it lives                                   |
+| ------------------------------------------- | ----------- | ------------------------------------------------ |
+| `object.data` (zone, type, etc.)            | Yes         | In the JSON per-object via `customProperties`    |
+| `object.clipPath`                           | Yes         | Fabric serializes clipPaths automatically        |
+| Zone configurations (`zones` object)        | No          | App-level config — pass when creating extensions |
+| `BoundaryConstraint` / `ZoneClip` instances | No          | Re-create after `loadFromJSON`                   |
+
+### Why zone config isn't serialized
+
+Zone configurations are app-level constants (e.g., "text goes in the bottom 25%"). They don't change per-card — they're determined by card type. PEP stores these in component code and passes them when creating the extensions. This avoids coupling the serialized canvas state to layout policy.
+
+---
+
 ## PEP Integration Pattern
 
 Here's how these extensions fit into the CardCanvas unification:
@@ -218,10 +277,11 @@ clipRef.current?.dispose();
 ## Tests
 
 ```bash
-# Run all zone extension tests
-npm run test:vitest -- extensions/boundary_constraint extensions/zone_clip extensions/layered_export
+# Run all zone extension tests (39 tests)
+npm run test:vitest -- extensions/zone_util extensions/boundary_constraint extensions/zone_clip extensions/layered_export
 
 # Run individually
+npm run test:vitest -- extensions/zone_util/ensureDataSerialization.spec.ts
 npm run test:vitest -- extensions/boundary_constraint/BoundaryConstraint.spec.ts
 npm run test:vitest -- extensions/zone_clip/ZoneClip.spec.ts
 npm run test:vitest -- extensions/layered_export/LayeredExport.spec.ts
