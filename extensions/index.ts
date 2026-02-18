@@ -25,3 +25,12 @@ export {
   changeCropHeight,
 } from './cropping_controls/croppingHandlers';
 export { enterCropMode } from './cropping_controls/enterCropMode';
+
+export { BoundaryConstraint } from './boundary_constraint';
+export type * from './boundary_constraint/typedefs';
+
+export { ZoneClip } from './zone_clip';
+export type * from './zone_clip/typedefs';
+
+export { LayeredExport } from './layered_export';
+export type * from './layered_export/typedefs';
